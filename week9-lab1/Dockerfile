@@ -1,17 +1,33 @@
-FROM golang:1.24.5 AS builder
+# Build stage
+FROM golang:1.24.5-alpine AS builder
+
+# ติดตั้ง dependencies ที่จำเป็น
+RUN apk add --no-cache git wget
 
 WORKDIR /app
 
+# Copy go mod files
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy source code
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -a -o main .
 
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+
+# Final stage
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates curl
+RUN apk --no-cache add ca-certificates wget
 
-WORKDIR /root
+WORKDIR /root/
+
+# Copy the binary from builder
 COPY --from=builder /app/main .
-ENTRYPOINT [ "./main" ]
+
+# Expose port
+EXPOSE 8080
+
+# Run the application
+CMD ["./main"]
