@@ -4,14 +4,37 @@ definitions:
     properties:
       author:
         type: string
+      category:
+        description: ฟิลด์ใหม่
+        type: string
+      cover_image:
+        type: string
       created_at:
         type: string
+      description:
+        type: string
+      discount:
+        type: integer
       id:
         type: integer
+      is_new:
+        type: boolean
       isbn:
         type: string
+      language:
+        type: string
+      original_price:
+        type: number
+      pages:
+        type: integer
       price:
         type: number
+      publisher:
+        type: string
+      rating:
+        type: number
+      reviews_count:
+        type: integer
       title:
         type: string
       updated_at:
@@ -33,11 +56,7 @@ info:
 paths:
   /books:
     get:
-      consumes:
-      - application/json
-      description: |-
-        Get all books or filter by year
-        Get details of specific book
+      description: Get all books
       produces:
       - application/json
       responses:
@@ -47,10 +66,6 @@ paths:
             items:
               $ref: '#/definitions/main.Book'
             type: array
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/main.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -59,7 +74,71 @@ paths:
       tags:
       - Books
     post:
-      description: Create a new book
+      consumes:
+      - application/json
+      description: Add a new book to the database
+      parameters:
+      - description: Book details
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/main.Book'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/main.Book'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Create a new book
+      tags:
+      - Books
+  /books/{id}:
+    delete:
+      description: Remove a book from the database by ID
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Delete a book
+      tags:
+      - Books
+    get:
+      description: Get detail of book
+      parameters:
+      - description: Book ID
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
@@ -71,19 +150,50 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/main.ErrorResponse'
-      summary: Create a new book
+      summary: Get Book by Id
       tags:
       - Books
-  /books/new:
-    get:
+    put:
       consumes:
       - application/json
-      description: Get latest books ordered by created date
+      description: Update a book’s details using its ID
       parameters:
-      - description: Number of books to return (default 5)
-        in: query
-        name: limit
+      - description: Book ID
+        in: path
+        name: id
+        required: true
         type: integer
+      - description: Updated book details
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/main.Book'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.Book'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Update an existing book
+      tags:
+      - Books
+  /books/discounted:
+    get:
+      description: Get books that have a discount > 0
       produces:
       - application/json
       responses:
@@ -93,11 +203,73 @@ paths:
             items:
               $ref: '#/definitions/main.Book'
             type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/main.ErrorResponse'
-      summary: Get new books
+      summary: Get discounted books
       tags:
       - Books
+  /books/featured:
+    get:
+      description: Get books with high rating (>= 4.5)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Book'
+            type: array
+      summary: Get featured books
+      tags:
+      - Books
+  /books/new:
+    get:
+      description: Get the most recently added books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Book'
+            type: array
+      summary: Get newly added books
+      tags:
+      - Books
+  /books/search:
+    get:
+      description: Search books by title or author
+      parameters:
+      - description: Keyword to search (title or author)
+        in: query
+        name: q
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Book'
+            type: array
+      summary: Search books by keyword
+      tags:
+      - Books
+  /categories:
+    get:
+      description: Return a list of unique categories from books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+      summary: Get all unique book categories
+      tags:
+      - Categories
 swagger: "2.0"
